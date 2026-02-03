@@ -1,0 +1,31 @@
+# Carpetas de configuración de Claude
+.claude/
+
+# Archivos de configuración con contraseñas
+backend/config.php
+backend/conexion.php
+backend/database.php
+backend/.env
+*.env
+
+# Node modules (si usas Node.js)
+node_modules/
+frontend/node_modules/
+
+# Archivos de base de datos
+*.sql
+*.db
+
+# Archivos temporales
+*.log
+*.tmp
+nul
+
+# Sistema
+Thumbs.db
+.DS_Store
+
+# Archivos de build
+frontend/dist/
+frontend/build/
+backend/vendor/
