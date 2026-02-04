@@ -16,17 +16,19 @@ app.use(express.json());
 const PORT = process.env.PORT || 3001;
 const JWT_SECRET = process.env.JWT_SECRET || "dev_secret";
 
-// Railway provee MYSQL_URL; en local se usan las variables individuales
+// Soporte para MYSQL_URL (Railway) o variables individuales (Aiven, local, etc.)
 const dbConfig = process.env.MYSQL_URL
   ? { uri: process.env.MYSQL_URL, waitForConnections: true, connectionLimit: 10, queueLimit: 0 }
   : {
       host: process.env.DB_HOST || "127.0.0.1",
+      port: Number(process.env.DB_PORT) || 3306,
       user: process.env.DB_USER || "root",
       password: process.env.DB_PASSWORD || "",
       database: process.env.DB_NAME || "arq_apps",
       waitForConnections: true,
       connectionLimit: 10,
       queueLimit: 0,
+      ssl: process.env.DB_SSL === "true" ? { rejectUnauthorized: false } : undefined,
     };
 
 const pool = mysql.createPool(dbConfig);
