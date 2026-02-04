@@ -7,6 +7,8 @@ const jwt = require("jsonwebtoken");
 const bcrypt = require("bcrypt");
 const mysql = require("mysql2/promise");
 
+const path = require("path");
+
 const app = express();
 app.use(cors());
 app.use(express.json());
@@ -14,15 +16,20 @@ app.use(express.json());
 const PORT = process.env.PORT || 3001;
 const JWT_SECRET = process.env.JWT_SECRET || "dev_secret";
 
-const pool = mysql.createPool({
-  host: process.env.DB_HOST || "127.0.0.1",
-  user: process.env.DB_USER || "root",
-  password: process.env.DB_PASSWORD || "",
-  database: process.env.DB_NAME || "arq_apps",
-  waitForConnections: true,
-  connectionLimit: 10,
-  queueLimit: 0,
-});
+// Railway provee MYSQL_URL; en local se usan las variables individuales
+const dbConfig = process.env.MYSQL_URL
+  ? { uri: process.env.MYSQL_URL, waitForConnections: true, connectionLimit: 10, queueLimit: 0 }
+  : {
+      host: process.env.DB_HOST || "127.0.0.1",
+      user: process.env.DB_USER || "root",
+      password: process.env.DB_PASSWORD || "",
+      database: process.env.DB_NAME || "arq_apps",
+      waitForConnections: true,
+      connectionLimit: 10,
+      queueLimit: 0,
+    };
+
+const pool = mysql.createPool(dbConfig);
 
 // ---------- AUTH MIDDLEWARE ----------
 function auth(req, res, next) {
@@ -419,6 +426,13 @@ app.put("/api/projects/:id/matrix/cell", auth, async (req, res) => {
   } catch (e) {
     res.status(e.status || 500).json({ error: "Error interno", detail: e.message });
   }
+});
+
+// ---------- SERVIR FRONTEND EN PRODUCCIÓN ----------
+const frontendDist = path.join(__dirname, "../frontend/dist");
+app.use(express.static(frontendDist));
+app.get("*", (req, res) => {
+  res.sendFile(path.join(frontendDist, "index.html"));
 });
 
 app.listen(PORT, () => {

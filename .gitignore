@@ -6,14 +6,14 @@ backend/config.php
 backend/conexion.php
 backend/database.php
 backend/.env
-*.env
+frontend/.env
+.env
 
 # Node modules (si usas Node.js)
 node_modules/
 frontend/node_modules/
 
 # Archivos de base de datos
-*.sql
 *.db
 
 # Archivos temporales
