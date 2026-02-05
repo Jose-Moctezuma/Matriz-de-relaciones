@@ -31,6 +31,7 @@ const dbConfig = process.env.MYSQL_URL
       ssl: process.env.DB_SSL === "true" ? { rejectUnauthorized: false } : undefined,
     };
 
+console.log("DB Config:", { host: process.env.DB_HOST, port: process.env.DB_PORT, user: process.env.DB_USER, database: process.env.DB_NAME, ssl: process.env.DB_SSL });
 const pool = mysql.createPool(dbConfig);
 
 // ---------- AUTH MIDDLEWARE ----------
