@@ -217,6 +217,7 @@ app.put("/api/projects/:id", auth, async (req, res) => {
 
 app.post("/api/projects", auth, async (req, res) => {
   try {
+    console.log("POST /api/projects - user:", req.user?.id);
     const { title, type } = req.body || {};
     const projectTitle = title || "Nueva matriz";
     const projectType = type || "matrix";
@@ -225,8 +226,10 @@ app.post("/api/projects", auth, async (req, res) => {
       "INSERT INTO projects (user_id, title, type, data) VALUES (?,?,?,?)",
       [req.user.id, projectTitle, projectType, null]
     );
+    console.log("Project created:", r.insertId);
     res.json({ id: r.insertId });
   } catch (e) {
+    console.error("Error creating project:", e.message);
     res.status(500).json({ error: "Error interno", detail: e.message });
   }
 });
