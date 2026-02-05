@@ -433,7 +433,7 @@ app.put("/api/projects/:id/matrix/cell", auth, async (req, res) => {
 // ---------- SERVIR FRONTEND EN PRODUCCIÓN ----------
 const frontendDist = path.join(__dirname, "../frontend/dist");
 app.use(express.static(frontendDist));
-app.get("*", (req, res) => {
+app.get("/{*splat}", (req, res) => {
   res.sendFile(path.join(frontendDist, "index.html"));
 });
 
