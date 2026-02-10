@@ -16,10 +16,10 @@ const normalizeZoneName = (zoneName) => {
   const name = String(zoneName).trim();
 
   const lower = name.toLowerCase();
-  if (lower.includes("social") && !lower.includes("semi")) return "Área Social";
-  if (lower.includes("semisocial")) return "Área Semisocial";
-  if (lower.includes("servicio") || lower.includes("serv")) return "Área Servicio";
-  if (lower.includes("privada") || lower.includes("priv")) return "Área Privada";
+  if (lower.includes("social") && !lower.includes("semi")) return "Social";
+  if (lower.includes("semisocial")) return "Semisocial";
+  if (lower.includes("servicio") || lower.includes("serv")) return "Servicio";
+  if (lower.includes("privada") || lower.includes("priv")) return "Privada";
 
   return name;
 };
@@ -59,10 +59,10 @@ const MatrixPDF = forwardRef(function MatrixPDF(
 
   const zoneColorMap = useMemo(() => {
     const m = new Map();
-    m.set("Área Social", "#16a34a");
-    m.set("Área Semisocial", "#f97316");
-    m.set("Área Servicio", "#facc15");
-    m.set("Área Privada", "#ef4444");
+    m.set("Social", "#16a34a");
+    m.set("Semisocial", "#f97316");
+    m.set("Servicio", "#facc15");
+    m.set("Privada", "#ef4444");
 
     for (const z of ZONES) {
       const normalizedKey = normalizeZoneName(z.key);

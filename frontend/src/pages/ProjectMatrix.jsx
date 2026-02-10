@@ -6,10 +6,10 @@ import { useNavigate, useParams } from "react-router-dom";
 import api from "../api/http";
 
 const ZONES = [
-  { key: "Área Social", color: "#16a34a", order: 1 },
-  { key: "Área Semisocial", color: "#f97316", order: 2 },
-  { key: "Área Servicio", color: "#facc15", order: 3 },
-  { key: "Área Privada", color: "#ef4444", order: 4 },
+  { key: "Social", color: "#16a34a", order: 1 },
+  { key: "Semisocial", color: "#f97316", order: 2 },
+  { key: "Servicio", color: "#facc15", order: 3 },
+  { key: "Privada", color: "#ef4444", order: 4 },
 ];
 
 /* ── Paleta ── */
