@@ -376,7 +376,7 @@ const MatrixPDF = forwardRef(function MatrixPDF(
               transform: "rotate(45deg)",
             }}
           >
-            <span style={{ fontWeight: 900, fontSize: 12, color: "#111827" }}>
+            <span style={{ transform: "rotate(-45deg)", fontWeight: 900, fontSize: 12, color: "#111827" }}>
               {sums[i] ?? 0}
             </span>
           </div>
@@ -402,7 +402,7 @@ const MatrixPDF = forwardRef(function MatrixPDF(
               transform: "rotate(45deg)",
             }}
           >
-            <span style={{ fontWeight: 900, fontSize: 12, color: "#111827" }}>
+            <span style={{ transform: "rotate(-45deg)", fontWeight: 900, fontSize: 12, color: "#111827" }}>
               {`R${ranks[i] ?? "-"}`}
             </span>
           </div>
@@ -411,24 +411,25 @@ const MatrixPDF = forwardRef(function MatrixPDF(
 
       {/* ── Labels SUMATORIA / RANGO ── */}
       {(() => {
-        // Posición del label basada en la última celda de cada columna (fila n-1)
+        // Posición del label debajo de la última celda de cada columna
         const sumPos = getExtendedCellPos(n - 1, 0);
         const rkPos = getExtendedCellPos(n - 1, 1);
+        const offsetDown = CELL * 0.8;
 
         return (
           <>
             <div
               style={{
                 position: "absolute",
-                left: sumPos.x - labelOffsetX,
-                top: sumPos.y + labelOffsetY,
+                left: sumPos.x - CELL * 0.3,
+                top: sumPos.y + offsetDown,
                 transform: "rotate(-55deg)",
-                transformOrigin: "right center",
+                transformOrigin: "top center",
                 fontWeight: 900,
                 color: "#111827",
-                letterSpacing: 1,
+                letterSpacing: 0.5,
                 textTransform: "uppercase",
-                fontSize: 10,
+                fontSize: 9,
                 whiteSpace: "nowrap",
               }}
             >
@@ -438,15 +439,15 @@ const MatrixPDF = forwardRef(function MatrixPDF(
             <div
               style={{
                 position: "absolute",
-                left: rkPos.x - labelOffsetX,
-                top: rkPos.y + labelOffsetY,
+                left: rkPos.x - CELL * 0.1,
+                top: rkPos.y + offsetDown,
                 transform: "rotate(-55deg)",
-                transformOrigin: "right center",
+                transformOrigin: "top center",
                 fontWeight: 900,
                 color: "#111827",
-                letterSpacing: 1,
+                letterSpacing: 0.5,
                 textTransform: "uppercase",
-                fontSize: 10,
+                fontSize: 9,
                 whiteSpace: "nowrap",
               }}
             >
