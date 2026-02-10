@@ -133,14 +133,15 @@ const MatrixPDF = forwardRef(function MatrixPDF(
   const diamondBottomX = cx + bottomTip.xr;
   const diamondBottomY = cy + bottomTip.yr;
 
-  const DIAG_GAP = 4;
   const diagStep = CELL / Math.SQRT2;
-  // Punto de inicio: abajo-izquierda de la fila de sumatoria
-  // Empezamos desde el borde inferior-izquierdo del rombo
-  const diagStartX = diamondBottomX - (n - 1) * diagStep;
-  const diagStartY = diamondBottomY + DIAG_GAP + (n - 1) * diagStep;
-  const labelOffsetX = Math.round(CELL * 3.5);
-  const labelOffsetY = Math.round(CELL * 0.3);
+  // El borde derecho del rombo va desde el vértice inferior hasta el vértice derecho
+  // Posicionamos SUMATORIA justo debajo de ese borde
+  // Celda 0 de SUMATORIA debe estar alineada con la columna 0 del rombo
+  const rightVertex = rot45(gridSide, 0); // vértice derecho del rombo
+  const sumRowStartX = cx + rightVertex.xr - (n - 1) * diagStep;
+  const sumRowStartY = cy + rightVertex.yr + diagStep * 0.5;
+  const labelOffsetX = Math.round(CELL * 4);
+  const labelOffsetY = Math.round(CELL * 0.2);
 
   return (
     <div ref={ref} data-matrix-pdf style={{ position: "relative", width: "100%", height: `${STAGE_H}px`, background: "#fff" }}>
@@ -347,18 +348,18 @@ const MatrixPDF = forwardRef(function MatrixPDF(
       </div>
 
       {/* ── Sumatoria + Rango (celdas individuales en diagonal) ── */}
-      {/* Fila SUMATORIA: va de abajo-izquierda a arriba-derecha */}
+      {/* Fila SUMATORIA: alineada con el borde inferior del rombo */}
       {Array.from({ length: n }).map((_, i) => {
-        // Cada celda se mueve hacia arriba-derecha (X+, Y-)
-        const offsetX = i * diagStep;
-        const offsetY = -i * diagStep;
+        // Cada celda se posiciona a lo largo del borde derecho del rombo
+        const cellX = sumRowStartX + i * diagStep;
+        const cellY = sumRowStartY + i * diagStep;
         return (
           <div
             key={`sum-${i}`}
             style={{
               position: "absolute",
-              left: diagStartX + offsetX - CELL / 2,
-              top: diagStartY + offsetY - CELL / 2,
+              left: cellX - CELL / 2,
+              top: cellY - CELL / 2,
               width: CELL,
               height: CELL,
               boxSizing: "border-box",
@@ -375,17 +376,17 @@ const MatrixPDF = forwardRef(function MatrixPDF(
           </div>
         );
       })}
-      {/* Fila RANGO: paralela a SUMATORIA, una celda más abajo-derecha */}
+      {/* Fila RANGO: paralela a SUMATORIA, una celda más abajo */}
       {Array.from({ length: n }).map((_, i) => {
-        const offsetX = i * diagStep + diagStep;
-        const offsetY = -i * diagStep + diagStep;
+        const cellX = sumRowStartX + i * diagStep + diagStep;
+        const cellY = sumRowStartY + i * diagStep + diagStep;
         return (
           <div
             key={`rk-${i}`}
             style={{
               position: "absolute",
-              left: diagStartX + offsetX - CELL / 2,
-              top: diagStartY + offsetY - CELL / 2,
+              left: cellX - CELL / 2,
+              top: cellY - CELL / 2,
               width: CELL,
               height: CELL,
               boxSizing: "border-box",
@@ -403,19 +404,19 @@ const MatrixPDF = forwardRef(function MatrixPDF(
         );
       })}
 
-      {/* ── Labels SUMATORIA / RANGO ── */}
+      {/* ── Labels SUMATORIA / RANGO (verticales, alineados con las filas) ── */}
       <div
         style={{
           position: "absolute",
-          left: diagStartX - labelOffsetX,
-          top: diagStartY - labelOffsetY,
-          transform: "rotate(-45deg)",
-          transformOrigin: "right center",
+          left: sumRowStartX - labelOffsetX,
+          top: sumRowStartY + labelOffsetY,
+          transform: "rotate(-60deg)",
+          transformOrigin: "center",
           fontWeight: 900,
           color: "#111827",
-          letterSpacing: 0.6,
+          letterSpacing: 1,
           textTransform: "uppercase",
-          fontSize: 11,
+          fontSize: 10,
           whiteSpace: "nowrap",
         }}
       >
@@ -425,15 +426,15 @@ const MatrixPDF = forwardRef(function MatrixPDF(
       <div
         style={{
           position: "absolute",
-          left: diagStartX - labelOffsetX + diagStep,
-          top: diagStartY - labelOffsetY + diagStep,
-          transform: "rotate(-45deg)",
-          transformOrigin: "right center",
+          left: sumRowStartX - labelOffsetX + diagStep * 1.2,
+          top: sumRowStartY + labelOffsetY + diagStep * 1.2,
+          transform: "rotate(-60deg)",
+          transformOrigin: "center",
           fontWeight: 900,
           color: "#111827",
-          letterSpacing: 0.6,
+          letterSpacing: 1,
           textTransform: "uppercase",
-          fontSize: 11,
+          fontSize: 10,
           whiteSpace: "nowrap",
         }}
       >
