@@ -411,20 +411,21 @@ const MatrixPDF = forwardRef(function MatrixPDF(
 
       {/* ── Labels SUMATORIA / RANGO ── */}
       {(() => {
-        // Posición del label debajo de la última celda de cada columna
+        // Posición del label a la izquierda de la última celda de cada columna
         const sumPos = getExtendedCellPos(n - 1, 0);
         const rkPos = getExtendedCellPos(n - 1, 1);
-        const offsetDown = CELL * 0.8;
+        const offsetLeft = CELL * 1.2;
+        const offsetDown = CELL * 0.4;
 
         return (
           <>
             <div
               style={{
                 position: "absolute",
-                left: sumPos.x - CELL * 0.3,
+                left: sumPos.x - offsetLeft,
                 top: sumPos.y + offsetDown,
-                transform: "rotate(-55deg)",
-                transformOrigin: "top center",
+                transform: "rotate(-45deg)",
+                transformOrigin: "right center",
                 fontWeight: 900,
                 color: "#111827",
                 letterSpacing: 0.5,
@@ -439,10 +440,10 @@ const MatrixPDF = forwardRef(function MatrixPDF(
             <div
               style={{
                 position: "absolute",
-                left: rkPos.x - CELL * 0.1,
+                left: rkPos.x - offsetLeft,
                 top: rkPos.y + offsetDown,
-                transform: "rotate(-55deg)",
-                transformOrigin: "top center",
+                transform: "rotate(-45deg)",
+                transformOrigin: "right center",
                 fontWeight: 900,
                 color: "#111827",
                 letterSpacing: 0.5,
