@@ -78,8 +78,9 @@ const MatrixPDF = forwardRef(function MatrixPDF(
   const TITLE_H = 50;
   const LEFT_MARGIN = 44;
   const LEGEND_H = 130;
+  const FOOTER_ROWS_H = 80; // Espacio extra para sumatoria y rango
   const bottomSafe = 18;
-  const availableHForDiamondArea = STAGE_H - TITLE_H - LEGEND_H - bottomSafe;
+  const availableHForDiamondArea = STAGE_H - TITLE_H - LEGEND_H - FOOTER_ROWS_H - bottomSafe;
   const rowH = clamp(Math.floor((availableHForDiamondArea - HEADER_H) / n), 26, 46);
   const leftH = HEADER_H + n * rowH;
   const TOP_Y = TITLE_H;
@@ -132,12 +133,12 @@ const MatrixPDF = forwardRef(function MatrixPDF(
   const diamondBottomX = cx + bottomTip.xr;
   const diamondBottomY = cy + bottomTip.yr;
 
-  const DIAG_GAP = -1;
+  const DIAG_GAP = 2;
   const diagStartX = diamondBottomX;
   const diagStartY = diamondBottomY + DIAG_GAP;
   const diagStep = CELL / Math.SQRT2;
-  const labelOffsetX = Math.round(CELL * 2.8);
-  const labelOffsetY = Math.round(CELL * 0.8);
+  const labelOffsetX = Math.round(CELL * 3.2);
+  const labelOffsetY = Math.round(CELL * 0.6);
 
   return (
     <div ref={ref} data-matrix-pdf style={{ position: "relative", width: "100%", height: `${STAGE_H}px`, background: "#fff" }}>
@@ -343,23 +344,18 @@ const MatrixPDF = forwardRef(function MatrixPDF(
         </div>
       </div>
 
-      {/* ── Sumatoria + Rango (diagonal inferior) ── */}
-      <div
-        style={{
-          position: "absolute",
-          left: diagStartX,
-          top: diagStartY,
-          transformOrigin: "top left",
-          transform: "rotate(-45deg)",
-          display: "grid",
-          gridTemplateColumns: `repeat(${n}, ${CELL}px)`,
-          gridAutoRows: `${CELL}px`,
-        }}
-      >
-        {Array.from({ length: n }).map((_, i) => (
+      {/* ── Sumatoria + Rango (celdas individuales en diagonal) ── */}
+      {Array.from({ length: n }).map((_, i) => {
+        // Posición de cada celda de sumatoria a lo largo de la diagonal
+        const offsetX = i * diagStep;
+        const offsetY = i * diagStep;
+        return (
           <div
             key={`sum-${i}`}
             style={{
+              position: "absolute",
+              left: diagStartX + offsetX - CELL / 2,
+              top: diagStartY + offsetY - CELL / 2,
               width: CELL,
               height: CELL,
               boxSizing: "border-box",
@@ -367,17 +363,26 @@ const MatrixPDF = forwardRef(function MatrixPDF(
               background: "#ffffff",
               display: "grid",
               placeItems: "center",
+              transform: "rotate(45deg)",
             }}
           >
-            <div style={{ transform: "rotate(45deg)", fontWeight: 900, fontSize: 12 }}>
-              {sums[n - 1 - i] ?? 0}
-            </div>
+            <span style={{ fontWeight: 900, fontSize: 12, color: "#111827" }}>
+              {sums[i] ?? 0}
+            </span>
           </div>
-        ))}
-        {Array.from({ length: n }).map((_, i) => (
+        );
+      })}
+      {Array.from({ length: n }).map((_, i) => {
+        // Posición de cada celda de rango (una fila más abajo en diagonal)
+        const offsetX = i * diagStep + diagStep;
+        const offsetY = i * diagStep + diagStep;
+        return (
           <div
             key={`rk-${i}`}
             style={{
+              position: "absolute",
+              left: diagStartX + offsetX - CELL / 2,
+              top: diagStartY + offsetY - CELL / 2,
               width: CELL,
               height: CELL,
               boxSizing: "border-box",
@@ -385,27 +390,30 @@ const MatrixPDF = forwardRef(function MatrixPDF(
               background: "#ffffff",
               display: "grid",
               placeItems: "center",
+              transform: "rotate(45deg)",
             }}
           >
-            <div style={{ transform: "rotate(45deg)", fontWeight: 900, fontSize: 12 }}>
-              {String(ranks[n - 1 - i] ?? "-").startsWith("R") ? ranks[n - 1 - i] : `R${ranks[n - 1 - i]}`}
-            </div>
+            <span style={{ fontWeight: 900, fontSize: 12, color: "#111827" }}>
+              {`R${ranks[i] ?? "-"}`}
+            </span>
           </div>
-        ))}
-      </div>
+        );
+      })}
 
       {/* ── Labels SUMATORIA / RANGO ── */}
       <div
         style={{
           position: "absolute",
-          left: diagStartX - labelOffsetX + diagStep * 0.5,
-          top: diagStartY + labelOffsetY + diagStep * 0.5,
-          transform: "rotate(-45deg)",
+          left: diagStartX - labelOffsetX,
+          top: diagStartY + labelOffsetY,
+          transform: "rotate(45deg)",
+          transformOrigin: "center",
           fontWeight: 900,
           color: "#111827",
           letterSpacing: 0.6,
           textTransform: "uppercase",
           fontSize: 11,
+          whiteSpace: "nowrap",
         }}
       >
         SUMATORIA
@@ -414,14 +422,16 @@ const MatrixPDF = forwardRef(function MatrixPDF(
       <div
         style={{
           position: "absolute",
-          left: diagStartX - labelOffsetX + diagStep * 1.5,
-          top: diagStartY + labelOffsetY + diagStep * 1.5,
-          transform: "rotate(-45deg)",
+          left: diagStartX - labelOffsetX + diagStep,
+          top: diagStartY + labelOffsetY + diagStep,
+          transform: "rotate(45deg)",
+          transformOrigin: "center",
           fontWeight: 900,
           color: "#111827",
           letterSpacing: 0.6,
           textTransform: "uppercase",
           fontSize: 11,
+          whiteSpace: "nowrap",
         }}
       >
         RANGO

@@ -116,7 +116,10 @@ export default function ProjectMatrix() {
   }, [cells]);
 
   const reportRef = useRef(null);
-  const STAGE_H = 820;
+  // Calcular altura dinámica basada en número de componentes
+  const baseHeight = 820;
+  const extraPerComponent = 35;
+  const STAGE_H = Math.max(baseHeight, baseHeight + (sortedRows.length - 8) * extraPerComponent);
   const LEFT_W = 360;
   const INNER_W = 1120;
   const HEADER_H = 64;
