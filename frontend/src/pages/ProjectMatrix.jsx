@@ -12,6 +12,17 @@ const ZONES = [
   { key: "Privada", color: "#ef4444", order: 4 },
 ];
 
+// Normaliza nombres de zona (compatibilidad con datos antiguos)
+const normalizeZone = (zone) => {
+  if (!zone) return "";
+  const z = String(zone).toLowerCase();
+  if (z.includes("social") && !z.includes("semi")) return "Social";
+  if (z.includes("semisocial")) return "Semisocial";
+  if (z.includes("servicio") || z.includes("serv")) return "Servicio";
+  if (z.includes("privada") || z.includes("priv")) return "Privada";
+  return zone;
+};
+
 /* ── Paleta ── */
 const C = {
   bg: "#0f172a",
@@ -193,8 +204,9 @@ export default function ProjectMatrix() {
     const map = new Map();
     for (const z of ZONES) map.set(z.key, []);
     for (const c of comps) {
-      if (!map.has(c.zone)) map.set(c.zone, []);
-      map.get(c.zone).push(c.name);
+      const normalizedZone = normalizeZone(c.zone);
+      if (!map.has(normalizedZone)) map.set(normalizedZone, []);
+      map.get(normalizedZone).push(c.name);
     }
     return map;
   }, [matrix]);

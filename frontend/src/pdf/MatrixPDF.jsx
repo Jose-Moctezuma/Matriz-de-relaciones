@@ -420,8 +420,8 @@ const MatrixPDF = forwardRef(function MatrixPDF(
             <div
               style={{
                 position: "absolute",
-                left: sumPos.x - CELL * 2,
-                top: sumPos.y + CELL * 0.2,
+                left: sumPos.x - CELL * 2.8,
+                top: sumPos.y + CELL * 0.1,
                 transform: "rotate(-45deg)",
                 transformOrigin: "right center",
                 fontWeight: 900,
@@ -438,8 +438,8 @@ const MatrixPDF = forwardRef(function MatrixPDF(
             <div
               style={{
                 position: "absolute",
-                left: rkPos.x - CELL * 1.5,
-                top: rkPos.y + CELL * 0.5,
+                left: rkPos.x - CELL * 2,
+                top: rkPos.y + CELL * 0.4,
                 transform: "rotate(-45deg)",
                 transformOrigin: "right center",
                 fontWeight: 900,
