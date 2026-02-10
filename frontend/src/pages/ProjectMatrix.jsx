@@ -288,7 +288,7 @@ export default function ProjectMatrix() {
             Arq <span style={{ color: C.gold }}>Apps</span>
           </h1>
           <span style={{ color: C.border, fontSize: 20, fontWeight: 300 }}>|</span>
-          <span style={{ color: C.textMuted, fontSize: 14 }}>Matriz de Relaciones</span>
+          <span style={{ color: C.textMuted, fontSize: 14 }}>Matriz de Relaciones Ponderadas</span>
         </div>
 
         <div style={{ display: "flex", gap: 8, flexWrap: "wrap" }}>
