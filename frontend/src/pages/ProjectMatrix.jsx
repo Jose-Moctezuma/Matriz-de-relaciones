@@ -293,13 +293,13 @@ export default function ProjectMatrix() {
 
         <div style={{ display: "flex", gap: 8, flexWrap: "wrap" }}>
           <button onClick={() => nav("/dashboard")} style={btnOutline}>
-            Dashboard
+            Proyectos
           </button>
           <button onClick={load} style={btnOutline}>
             Recargar
           </button>
           <button onClick={() => setOpenEditor(true)} style={btnGold}>
-            Editar componentes
+            Añadir espacios
           </button>
           <button onClick={exportPDF} style={btnOutline}>
             Exportar PDF
@@ -318,11 +318,10 @@ export default function ProjectMatrix() {
 
         <div style={{ display: "grid", gridTemplateColumns: "320px 1fr", gap: 20, alignItems: "start" }}>
 
-          {/* ── PANEL IZQ: zonas + componentes ── */}
+          {/* ── PANEL IZQ: zonas ── */}
           <div style={card}>
             <div style={{ display: "flex", gap: 8, marginBottom: 16 }}>
               <div style={pill(true)}>ZONAS</div>
-              <div style={pill(false)}>COMPONENTES</div>
             </div>
 
             {ZONES.map((z) => (
@@ -358,7 +357,7 @@ export default function ProjectMatrix() {
 
             {sortedRows.length < 2 || sortedCols.length < 2 ? (
               <div style={{ color: C.textMuted, fontSize: 14 }}>
-                No hay suficientes componentes. Ve a <strong style={{ color: C.gold }}>Editar componentes</strong> y guarda al menos 2.
+                No hay suficientes espacios. Ve a <strong style={{ color: C.gold }}>Añadir espacios</strong> y guarda al menos 2.
               </div>
             ) : (
               <div style={{ overflowX: "auto" }}>
@@ -445,7 +444,7 @@ export default function ProjectMatrix() {
           <div style={modalCard}>
             <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", gap: 12 }}>
               <h2 style={{ margin: 0, fontSize: 20, fontWeight: 700, color: C.text }}>
-                Editar Zonas y Componentes
+                Editar Zonas y Espacios
               </h2>
               <button onClick={() => setOpenEditor(false)} style={btnOutline}>
                 Cerrar
@@ -454,9 +453,9 @@ export default function ProjectMatrix() {
 
             <div style={{ marginTop: 20 }}>
               <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 12 }}>
-                <h3 style={{ margin: 0, fontSize: 16, color: C.text }}>Componentes</h3>
+                <h3 style={{ margin: 0, fontSize: 16, color: C.text }}>Espacios</h3>
                 <button onClick={onAddComponent} style={btnGold}>
-                  + Componente
+                  + Espacio
                 </button>
               </div>
 
@@ -486,7 +485,7 @@ export default function ProjectMatrix() {
                     <input
                       value={c.name}
                       onChange={(e) => onUpdateComponent(idx, { name: e.target.value })}
-                      placeholder="Nombre del componente"
+                      placeholder="Nombre del espacio"
                       style={inputStyle}
                     />
 

@@ -135,10 +135,12 @@ const MatrixPDF = forwardRef(function MatrixPDF(
 
   const diagStep = CELL / Math.SQRT2;
 
-  // Función para obtener posición de celda diagonal (i, i) en coordenadas de pantalla
-  const getDiagCellPos = (i) => {
-    const cellCenterX = i * CELL + CELL / 2;
-    const cellCenterY = i * CELL + CELL / 2;
+  // Función para obtener posición de celda extendida (como si hubiera columnas n y n+1)
+  // Esto posiciona las celdas a lo largo del borde derecho del rombo (hipotenusa)
+  const getExtendedCellPos = (row, extraCol) => {
+    // Columna n + extraCol (extraCol = 0 para SUMATORIA, 1 para RANGO)
+    const cellCenterX = (n + extraCol) * CELL + CELL / 2;
+    const cellCenterY = row * CELL + CELL / 2;
     const rotated = rot45(cellCenterX, cellCenterY);
     return {
       x: cx + rotated.xr,
@@ -146,8 +148,8 @@ const MatrixPDF = forwardRef(function MatrixPDF(
     };
   };
 
-  const labelOffsetX = Math.round(CELL * 4);
-  const labelOffsetY = Math.round(CELL * 0.5);
+  const labelOffsetX = Math.round(CELL * 4.5);
+  const labelOffsetY = Math.round(CELL * 0.3);
 
   return (
     <div ref={ref} data-matrix-pdf style={{ position: "relative", width: "100%", height: `${STAGE_H}px`, background: "#fff" }}>
@@ -353,20 +355,17 @@ const MatrixPDF = forwardRef(function MatrixPDF(
         </div>
       </div>
 
-      {/* ── Sumatoria + Rango (posicionadas relativas a cada celda diagonal) ── */}
-      {/* SUMATORIA: cada celda está justo debajo de su celda diagonal correspondiente */}
+      {/* ── Sumatoria + Rango (a lo largo del borde derecho/hipotenusa) ── */}
+      {/* SUMATORIA: columna n (extensión del grid) */}
       {Array.from({ length: n }).map((_, i) => {
-        const diagPos = getDiagCellPos(i);
-        // Offset hacia abajo-derecha del rombo (perpendicular al borde izquierdo)
-        const sumX = diagPos.x + diagStep;
-        const sumY = diagPos.y + diagStep;
+        const pos = getExtendedCellPos(i, 0);
         return (
           <div
             key={`sum-${i}`}
             style={{
               position: "absolute",
-              left: sumX - CELL / 2,
-              top: sumY - CELL / 2,
+              left: pos.x - CELL / 2,
+              top: pos.y - CELL / 2,
               width: CELL,
               height: CELL,
               boxSizing: "border-box",
@@ -383,18 +382,16 @@ const MatrixPDF = forwardRef(function MatrixPDF(
           </div>
         );
       })}
-      {/* RANGO: una fila más abajo de SUMATORIA */}
+      {/* RANGO: columna n+1 (extensión del grid) */}
       {Array.from({ length: n }).map((_, i) => {
-        const diagPos = getDiagCellPos(i);
-        const rkX = diagPos.x + diagStep * 2;
-        const rkY = diagPos.y + diagStep * 2;
+        const pos = getExtendedCellPos(i, 1);
         return (
           <div
             key={`rk-${i}`}
             style={{
               position: "absolute",
-              left: rkX - CELL / 2,
-              top: rkY - CELL / 2,
+              left: pos.x - CELL / 2,
+              top: pos.y - CELL / 2,
               width: CELL,
               height: CELL,
               boxSizing: "border-box",
@@ -414,20 +411,17 @@ const MatrixPDF = forwardRef(function MatrixPDF(
 
       {/* ── Labels SUMATORIA / RANGO ── */}
       {(() => {
-        // Posición del label basada en la última celda diagonal (más abajo)
-        const lastDiagPos = getDiagCellPos(n - 1);
-        const sumLabelX = lastDiagPos.x + diagStep - labelOffsetX;
-        const sumLabelY = lastDiagPos.y + diagStep + labelOffsetY;
-        const rkLabelX = lastDiagPos.x + diagStep * 2 - labelOffsetX;
-        const rkLabelY = lastDiagPos.y + diagStep * 2 + labelOffsetY;
+        // Posición del label basada en la última celda de cada columna (fila n-1)
+        const sumPos = getExtendedCellPos(n - 1, 0);
+        const rkPos = getExtendedCellPos(n - 1, 1);
 
         return (
           <>
             <div
               style={{
                 position: "absolute",
-                left: sumLabelX,
-                top: sumLabelY,
+                left: sumPos.x - labelOffsetX,
+                top: sumPos.y + labelOffsetY,
                 transform: "rotate(-55deg)",
                 transformOrigin: "right center",
                 fontWeight: 900,
@@ -444,8 +438,8 @@ const MatrixPDF = forwardRef(function MatrixPDF(
             <div
               style={{
                 position: "absolute",
-                left: rkLabelX,
-                top: rkLabelY,
+                left: rkPos.x - labelOffsetX,
+                top: rkPos.y + labelOffsetY,
                 transform: "rotate(-55deg)",
                 transformOrigin: "right center",
                 fontWeight: 900,
