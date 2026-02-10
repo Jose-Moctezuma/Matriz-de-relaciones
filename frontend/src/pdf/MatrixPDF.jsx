@@ -134,14 +134,20 @@ const MatrixPDF = forwardRef(function MatrixPDF(
   const diamondBottomY = cy + bottomTip.yr;
 
   const diagStep = CELL / Math.SQRT2;
-  // El borde derecho del rombo va desde el vértice inferior hasta el vértice derecho
-  // Posicionamos SUMATORIA justo debajo de ese borde
-  // Celda 0 de SUMATORIA debe estar alineada con la columna 0 del rombo
-  const rightVertex = rot45(gridSide, 0); // vértice derecho del rombo
-  const sumRowStartX = cx + rightVertex.xr - (n - 1) * diagStep;
-  const sumRowStartY = cy + rightVertex.yr + diagStep * 0.5;
+
+  // Función para obtener posición de celda diagonal (i, i) en coordenadas de pantalla
+  const getDiagCellPos = (i) => {
+    const cellCenterX = i * CELL + CELL / 2;
+    const cellCenterY = i * CELL + CELL / 2;
+    const rotated = rot45(cellCenterX, cellCenterY);
+    return {
+      x: cx + rotated.xr,
+      y: cy + rotated.yr
+    };
+  };
+
   const labelOffsetX = Math.round(CELL * 4);
-  const labelOffsetY = Math.round(CELL * 0.2);
+  const labelOffsetY = Math.round(CELL * 0.5);
 
   return (
     <div ref={ref} data-matrix-pdf style={{ position: "relative", width: "100%", height: `${STAGE_H}px`, background: "#fff" }}>
@@ -347,19 +353,20 @@ const MatrixPDF = forwardRef(function MatrixPDF(
         </div>
       </div>
 
-      {/* ── Sumatoria + Rango (celdas individuales en diagonal) ── */}
-      {/* Fila SUMATORIA: alineada con el borde inferior del rombo */}
+      {/* ── Sumatoria + Rango (posicionadas relativas a cada celda diagonal) ── */}
+      {/* SUMATORIA: cada celda está justo debajo de su celda diagonal correspondiente */}
       {Array.from({ length: n }).map((_, i) => {
-        // Cada celda se posiciona a lo largo del borde derecho del rombo
-        const cellX = sumRowStartX + i * diagStep;
-        const cellY = sumRowStartY + i * diagStep;
+        const diagPos = getDiagCellPos(i);
+        // Offset hacia abajo-derecha del rombo (perpendicular al borde izquierdo)
+        const sumX = diagPos.x + diagStep;
+        const sumY = diagPos.y + diagStep;
         return (
           <div
             key={`sum-${i}`}
             style={{
               position: "absolute",
-              left: cellX - CELL / 2,
-              top: cellY - CELL / 2,
+              left: sumX - CELL / 2,
+              top: sumY - CELL / 2,
               width: CELL,
               height: CELL,
               boxSizing: "border-box",
@@ -376,17 +383,18 @@ const MatrixPDF = forwardRef(function MatrixPDF(
           </div>
         );
       })}
-      {/* Fila RANGO: paralela a SUMATORIA, una celda más abajo */}
+      {/* RANGO: una fila más abajo de SUMATORIA */}
       {Array.from({ length: n }).map((_, i) => {
-        const cellX = sumRowStartX + i * diagStep + diagStep;
-        const cellY = sumRowStartY + i * diagStep + diagStep;
+        const diagPos = getDiagCellPos(i);
+        const rkX = diagPos.x + diagStep * 2;
+        const rkY = diagPos.y + diagStep * 2;
         return (
           <div
             key={`rk-${i}`}
             style={{
               position: "absolute",
-              left: cellX - CELL / 2,
-              top: cellY - CELL / 2,
+              left: rkX - CELL / 2,
+              top: rkY - CELL / 2,
               width: CELL,
               height: CELL,
               boxSizing: "border-box",
@@ -404,42 +412,55 @@ const MatrixPDF = forwardRef(function MatrixPDF(
         );
       })}
 
-      {/* ── Labels SUMATORIA / RANGO (verticales, alineados con las filas) ── */}
-      <div
-        style={{
-          position: "absolute",
-          left: sumRowStartX - labelOffsetX,
-          top: sumRowStartY + labelOffsetY,
-          transform: "rotate(-60deg)",
-          transformOrigin: "center",
-          fontWeight: 900,
-          color: "#111827",
-          letterSpacing: 1,
-          textTransform: "uppercase",
-          fontSize: 10,
-          whiteSpace: "nowrap",
-        }}
-      >
-        SUMATORIA
-      </div>
+      {/* ── Labels SUMATORIA / RANGO ── */}
+      {(() => {
+        // Posición del label basada en la última celda diagonal (más abajo)
+        const lastDiagPos = getDiagCellPos(n - 1);
+        const sumLabelX = lastDiagPos.x + diagStep - labelOffsetX;
+        const sumLabelY = lastDiagPos.y + diagStep + labelOffsetY;
+        const rkLabelX = lastDiagPos.x + diagStep * 2 - labelOffsetX;
+        const rkLabelY = lastDiagPos.y + diagStep * 2 + labelOffsetY;
 
-      <div
-        style={{
-          position: "absolute",
-          left: sumRowStartX - labelOffsetX + diagStep * 1.2,
-          top: sumRowStartY + labelOffsetY + diagStep * 1.2,
-          transform: "rotate(-60deg)",
-          transformOrigin: "center",
-          fontWeight: 900,
-          color: "#111827",
-          letterSpacing: 1,
-          textTransform: "uppercase",
-          fontSize: 10,
-          whiteSpace: "nowrap",
-        }}
-      >
-        RANGO
-      </div>
+        return (
+          <>
+            <div
+              style={{
+                position: "absolute",
+                left: sumLabelX,
+                top: sumLabelY,
+                transform: "rotate(-55deg)",
+                transformOrigin: "right center",
+                fontWeight: 900,
+                color: "#111827",
+                letterSpacing: 1,
+                textTransform: "uppercase",
+                fontSize: 10,
+                whiteSpace: "nowrap",
+              }}
+            >
+              SUMATORIA
+            </div>
+
+            <div
+              style={{
+                position: "absolute",
+                left: rkLabelX,
+                top: rkLabelY,
+                transform: "rotate(-55deg)",
+                transformOrigin: "right center",
+                fontWeight: 900,
+                color: "#111827",
+                letterSpacing: 1,
+                textTransform: "uppercase",
+                fontSize: 10,
+                whiteSpace: "nowrap",
+              }}
+            >
+              RANGO
+            </div>
+          </>
+        );
+      })()}
 
       {/* ── Leyenda PONDERACION ── */}
       <div
