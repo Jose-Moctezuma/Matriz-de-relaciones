@@ -12,70 +12,6 @@ const colors = {
   border: "rgba(248,250,252,0.1)",
 };
 
-const pageStyle = {
-  minHeight: "100vh",
-  width: "100%",
-  backgroundColor: colors.bg,
-  display: "flex",
-  alignItems: "center",
-  justifyContent: "center",
-  fontFamily: "system-ui",
-  padding: 24,
-  backgroundImage: [
-    "repeating-linear-gradient(0deg, rgba(212,168,83,0.03) 0px, rgba(212,168,83,0.03) 1px, transparent 1px, transparent 80px)",
-    "repeating-linear-gradient(90deg, rgba(212,168,83,0.03) 0px, rgba(212,168,83,0.03) 1px, transparent 1px, transparent 80px)",
-  ].join(", "),
-};
-
-const cardStyle = {
-  width: "100%",
-  maxWidth: 420,
-  backgroundColor: colors.card,
-  borderRadius: 12,
-  padding: "40px 32px",
-  border: `1px solid ${colors.border}`,
-};
-
-const input = {
-  width: "100%",
-  padding: 12,
-  borderRadius: 8,
-  border: `1px solid ${colors.border}`,
-  backgroundColor: "rgba(248,250,252,0.05)",
-  color: colors.text,
-  fontSize: 15,
-  fontFamily: "system-ui",
-  outline: "none",
-  boxSizing: "border-box",
-};
-
-const label = {
-  marginBottom: 6,
-  fontSize: 14,
-  color: colors.textMuted,
-  fontWeight: 500,
-};
-
-const btn = {
-  padding: 14,
-  borderRadius: 8,
-  border: "0",
-  background: colors.gold,
-  color: colors.bg,
-  fontWeight: 700,
-  fontSize: 15,
-  fontFamily: "system-ui",
-  cursor: "pointer",
-  width: "100%",
-};
-
-const link = {
-  color: colors.gold,
-  cursor: "pointer",
-  textDecoration: "underline",
-  textUnderlineOffset: 3,
-};
-
 export default function Login({ onLogin }) {
   const nav = useNavigate();
   const [email, setEmail] = useState("");
@@ -104,17 +40,54 @@ export default function Login({ onLogin }) {
   }
 
   return (
-    <div style={pageStyle}>
-      <div style={cardStyle}>
-        <div
-          style={{ textAlign: "center", marginBottom: 32, cursor: "pointer" }}
-          onClick={() => nav("/")}
-        >
-          <h1 style={{ margin: 0, fontSize: 28, fontWeight: 800, color: colors.text }}>
-            Arq <span style={{ color: colors.gold }}>Apps</span>
+    <div
+      style={{
+        minHeight: "100vh",
+        width: "100%",
+        backgroundColor: colors.bg,
+        display: "flex",
+        alignItems: "center",
+        justifyContent: "center",
+        fontFamily: "system-ui",
+        padding: 24,
+      }}
+    >
+      <div
+        style={{
+          width: "100%",
+          maxWidth: 420,
+          backgroundColor: colors.card,
+          borderRadius: 16,
+          padding: "48px 36px",
+          border: `1px solid ${colors.border}`,
+          boxShadow: "0 4px 24px rgba(0,0,0,0.3)",
+        }}
+      >
+        {/* Icon */}
+        <div style={{ textAlign: "center", marginBottom: 24 }}>
+          <div
+            style={{
+              width: 64,
+              height: 64,
+              margin: "0 auto 20px",
+              backgroundColor: "rgba(212,168,83,0.1)",
+              borderRadius: "50%",
+              display: "flex",
+              alignItems: "center",
+              justifyContent: "center",
+              fontSize: 28,
+            }}
+          >
+            🔐
+          </div>
+          <h1
+            style={{ margin: 0, fontSize: 26, fontWeight: 800, color: colors.text, cursor: "pointer" }}
+            onClick={() => nav("/")}
+          >
+            Bienvenido de nuevo
           </h1>
           <p style={{ margin: "8px 0 0", fontSize: 14, color: colors.textMuted }}>
-            Inicia sesión en tu cuenta
+            Inicia sesión para continuar
           </p>
         </div>
 
@@ -134,40 +107,112 @@ export default function Login({ onLogin }) {
           </div>
         )}
 
-        <form onSubmit={onSubmit} style={{ display: "grid", gap: 16 }}>
+        <form onSubmit={onSubmit} style={{ display: "grid", gap: 18 }}>
           <div>
-            <div style={label}>Correo</div>
+            <div style={{ marginBottom: 6, fontSize: 14, color: colors.textMuted, fontWeight: 500 }}>
+              Correo electrónico
+            </div>
             <input
               type="email"
               value={email}
               onChange={(e) => setEmail(e.target.value)}
-              style={input}
+              placeholder="tu@correo.com"
+              style={{
+                width: "100%",
+                padding: 14,
+                borderRadius: 8,
+                border: `1px solid ${colors.border}`,
+                backgroundColor: "rgba(248,250,252,0.05)",
+                color: colors.text,
+                fontSize: 15,
+                fontFamily: "system-ui",
+                outline: "none",
+                boxSizing: "border-box",
+              }}
             />
           </div>
 
           <div>
-            <div style={label}>Contraseña</div>
+            <div style={{ marginBottom: 6, fontSize: 14, color: colors.textMuted, fontWeight: 500 }}>
+              Contraseña
+            </div>
             <input
               type="password"
               value={password}
               onChange={(e) => setPassword(e.target.value)}
-              style={input}
+              placeholder="••••••••"
+              style={{
+                width: "100%",
+                padding: 14,
+                borderRadius: 8,
+                border: `1px solid ${colors.border}`,
+                backgroundColor: "rgba(248,250,252,0.05)",
+                color: colors.text,
+                fontSize: 15,
+                fontFamily: "system-ui",
+                outline: "none",
+                boxSizing: "border-box",
+              }}
             />
           </div>
 
-          <button type="submit" style={btn}>Entrar</button>
+          <button
+            type="submit"
+            style={{
+              padding: 14,
+              borderRadius: 8,
+              border: "0",
+              background: colors.gold,
+              color: colors.bg,
+              fontWeight: 700,
+              fontSize: 15,
+              fontFamily: "system-ui",
+              cursor: "pointer",
+              width: "100%",
+              marginTop: 8,
+            }}
+          >
+            Iniciar sesión
+          </button>
         </form>
 
-        <p style={{ marginTop: 20, textAlign: "center", fontSize: 14, color: colors.textMuted }}>
-          <span onClick={() => nav("/forgot-password")} style={link}>
+        <div style={{ marginTop: 24, textAlign: "center" }}>
+          <span
+            onClick={() => nav("/forgot-password")}
+            style={{
+              color: colors.textMuted,
+              cursor: "pointer",
+              fontSize: 14,
+              textDecoration: "underline",
+              textUnderlineOffset: 3,
+            }}
+          >
             ¿Olvidaste tu contraseña?
           </span>
-        </p>
+        </div>
 
-        <p style={{ marginTop: 8, textAlign: "center", fontSize: 14, color: colors.textMuted }}>
-          ¿No tienes cuenta?{" "}
-          <span onClick={() => nav("/register")} style={link}>Crear cuenta</span>
-        </p>
+        <div
+          style={{
+            marginTop: 32,
+            paddingTop: 24,
+            borderTop: `1px solid ${colors.border}`,
+            textAlign: "center",
+          }}
+        >
+          <p style={{ margin: 0, fontSize: 14, color: colors.textMuted }}>
+            ¿No tienes cuenta?{" "}
+            <span
+              onClick={() => nav("/register")}
+              style={{
+                color: colors.gold,
+                cursor: "pointer",
+                fontWeight: 600,
+              }}
+            >
+              Crear cuenta
+            </span>
+          </p>
+        </div>
       </div>
     </div>
   );

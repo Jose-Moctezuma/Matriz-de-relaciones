@@ -52,6 +52,9 @@ export default function ProjectMatrix() {
   const [openEditor, setOpenEditor] = useState(false);
   const [editorComponents, setEditorComponents] = useState([]);
 
+  // hover para resaltar celdas de sumatoria
+  const [hoveredRow, setHoveredRow] = useState(null);
+
   const load = async () => {
     try {
       setErr("");
@@ -394,10 +397,16 @@ export default function ProjectMatrix() {
                           if (ci <= ri) return <td key={c.id} style={{ ...td, background: "transparent" }} />;
 
                           const current = getCellValue(r.id, c.id);
-                          const cellBg =
-                            current === 4 ? "rgba(239,68,68,0.6)" :
-                            current === 2 ? "rgba(250,204,21,0.5)" :
-                            "rgba(248,250,252,0.06)";
+
+                          // Verificar si esta celda contribuye a la fila hover
+                          // La celda (ri, ci) contribuye a sumatoria de fila ri Y fila ci
+                          const isHighlighted = hoveredRow !== null && (hoveredRow === ri || hoveredRow === ci);
+
+                          const cellBg = isHighlighted
+                            ? "rgba(212,168,83,0.4)" // Dorado resaltado
+                            : current === 4 ? "rgba(239,68,68,0.6)"
+                            : current === 2 ? "rgba(250,204,21,0.5)"
+                            : "rgba(248,250,252,0.06)";
 
                           return (
                             <td
@@ -406,8 +415,9 @@ export default function ProjectMatrix() {
                                 background: cellBg,
                                 textAlign: "center",
                                 fontWeight: 700,
-                                border: `1px solid ${C.border}`,
+                                border: isHighlighted ? `2px solid ${C.gold}` : `1px solid ${C.border}`,
                                 padding: 0,
+                                transition: "all 0.15s ease",
                               }}
                             >
                               <select
@@ -434,7 +444,19 @@ export default function ProjectMatrix() {
                           );
                         })}
 
-                        <td style={{ ...td, textAlign: "center", fontWeight: 800, color: C.text }}>
+                        <td
+                          style={{
+                            ...td,
+                            textAlign: "center",
+                            fontWeight: 800,
+                            color: hoveredRow === ri ? C.gold : C.text,
+                            background: hoveredRow === ri ? "rgba(212,168,83,0.15)" : "transparent",
+                            cursor: "pointer",
+                            transition: "all 0.15s ease",
+                          }}
+                          onMouseEnter={() => setHoveredRow(ri)}
+                          onMouseLeave={() => setHoveredRow(null)}
+                        >
                           {sumsByIndex[ri] ?? 0}
                         </td>
                         <td style={{ ...td, textAlign: "center", fontWeight: 700, color: C.gold }}>
