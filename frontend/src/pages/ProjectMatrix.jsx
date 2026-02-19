@@ -98,7 +98,7 @@ export default function ProjectMatrix() {
   }, []);
 
   const sortedRows = useMemo(() => {
-    const zo = (zone) => zoneOrderMap.get(zone) ?? 999;
+    const zo = (zone) => zoneOrderMap.get(normalizeZone(zone)) ?? 999;
     return [...rows].sort((a, b) => {
       const za = zo(a.zone);
       const zb = zo(b.zone);
@@ -108,7 +108,7 @@ export default function ProjectMatrix() {
   }, [rows, zoneOrderMap]);
 
   const sortedCols = useMemo(() => {
-    const zo = (zone) => zoneOrderMap.get(zone) ?? 999;
+    const zo = (zone) => zoneOrderMap.get(normalizeZone(zone)) ?? 999;
     return [...cols].sort((a, b) => {
       const za = zo(a.zone);
       const zb = zo(b.zone);
