@@ -84,9 +84,8 @@ const MatrixPDF = forwardRef(function MatrixPDF(
   const rowH = clamp(Math.floor((availableHForDiamondArea - HEADER_H) / n), 26, 46);
   const leftH = HEADER_H + n * rowH;
   const TOP_Y = TITLE_H;
-  const JOIN_GAP = -9;
   const rightMargin = 12;
-  const availableW = INNER_W - LEFT_MARGIN - (LEFT_W + JOIN_GAP) - rightMargin;
+  const availableW = INNER_W - LEFT_MARGIN - LEFT_W - rightMargin;
 
   let CELL = Math.round(rowH / Math.SQRT2);
   CELL = clamp(CELL, 14, 50);
@@ -99,8 +98,11 @@ const MatrixPDF = forwardRef(function MatrixPDF(
     gridSide = n * CELL;
   }
 
-  const panelBorderFix = 3;
-  const desiredLeft = LEFT_MARGIN + (LEFT_W + panelBorderFix) + JOIN_GAP;
+  // desiredLeft: el CENTRO de las celdas diagonales queda en el borde derecho del panel.
+  // El panel se dibuja encima del rombo (zIndex mayor), cubriendo la mitad izquierda
+  // de cada celda diagonal. Solo la mitad derecha (triángulo) queda visible.
+  // desiredTop: la fila 0 del rombo alinea con la primera fila de datos del panel.
+  const desiredLeft = LEFT_MARGIN + LEFT_W;
   const desiredTop = TOP_Y + HEADER_H + 3;
 
   const rot45 = (px, py) => {
@@ -194,7 +196,7 @@ const MatrixPDF = forwardRef(function MatrixPDF(
         )}
       </div>
 
-      {/* ── Panel izquierdo (zonas + ambientes) ── */}
+      {/* ── Panel izquierdo (zonas + ambientes) — zIndex mayor para tapar el rombo ── */}
       <div
         style={{
           position: "absolute",
@@ -205,6 +207,7 @@ const MatrixPDF = forwardRef(function MatrixPDF(
           border: BORDER,
           boxSizing: "border-box",
           background: "#fff",
+          zIndex: 2,
         }}
       >
         <div
