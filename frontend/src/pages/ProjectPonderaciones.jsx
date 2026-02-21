@@ -347,34 +347,44 @@ export default function ProjectPonderaciones({ onLogout }) {
       // Título
       setTitle(matrixData.projectTitle || "");
 
-      // Calcular sumas y rangos (igual que ProjectMatrix)
+      // --- Igual que ProjectMatrix: rows, cols y cells separados ---
       const rows  = matrixData.rows  || [];
+      const cols  = matrixData.cols  || [];
       const cells = matrixData.cells || [];
 
+      // cellMap simétrico (igual que ProjectMatrix)
       const cellMap = new Map();
-      for (const c of cells) cellMap.set(`${c.row_axis_id}-${c.col_axis_id}`, c.value);
-      const getVal = (a, b) => Number(cellMap.get(`${a}-${b}`) ?? cellMap.get(`${b}-${a}`) ?? 0);
+      for (const c of cells) {
+        const a = Number(c.row_axis_id);
+        const b = Number(c.col_axis_id);
+        const v = Number(c.value ?? 0);
+        cellMap.set(`${a}-${b}`, v);
+        cellMap.set(`${b}-${a}`, v);
+      }
 
+      // Ordenar filas y columnas igual que ProjectMatrix
       const zoneOrder = { Social: 1, Semisocial: 2, Servicio: 3, Privada: 4 };
-      const sorted = [...rows].sort((a, b) => {
+      const sortFn = (a, b) => {
         const za = zoneOrder[normalizeZone(a.zone)] ?? 99;
         const zb = zoneOrder[normalizeZone(b.zone)] ?? 99;
         return za !== zb ? za - zb : (a.order ?? 0) - (b.order ?? 0);
-      });
+      };
+      const sortedRows = [...rows].sort(sortFn);
+      const sortedCols = [...cols].sort(sortFn);
 
-      // Sumatoria — igual que ProjectMatrix: triángulo superior, acumula en ambos lados
-      const n = sorted.length;
+      // Sumatoria — usa sortedRows[i].id (fila) y sortedCols[j].id (columna)
+      const n = sortedRows.length;
       const sumArr = Array(n).fill(0);
       for (let i = 0; i < n; i++) {
         for (let j = i + 1; j < n; j++) {
-          const v = Number(cellMap.get(`${sorted[i].id}-${sorted[j].id}`) ?? 0);
+          const v = Number(cellMap.get(`${Number(sortedRows[i].id)}-${Number(sortedCols[j].id)}`) ?? 0);
           sumArr[i] += v;
           sumArr[j] += v;
         }
       }
 
-      // Rangos — igual que ProjectMatrix: incremento de 1 cuando cambia la suma
-      const items = sorted.map((r, idx) => ({
+      // Rangos — incremento de 1 cuando cambia la suma (igual que ProjectMatrix)
+      const items = sortedRows.map((r, idx) => ({
         idx,
         sum:   sumArr[idx],
         order: Number(r.order ?? idx),
@@ -392,7 +402,7 @@ export default function ProjectPonderaciones({ onLogout }) {
         ranks[it.idx] = currentRank;
       }
 
-      setSpaces(sorted.map((r, i) => ({
+      setSpaces(sortedRows.map((r, i) => ({
         id:   r.id,
         name: r.name,
         zone: normalizeZone(r.zone),
