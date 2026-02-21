@@ -49,6 +49,17 @@ CREATE TABLE IF NOT EXISTS password_resets (
   FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE
 ) ENGINE=InnoDB;
 
+-- Posiciones del diagrama de ponderaciones (ángulo de cada burbuja dentro de su sector)
+CREATE TABLE IF NOT EXISTS diagram_positions (
+  id           INT AUTO_INCREMENT PRIMARY KEY,
+  project_id   INT NOT NULL,
+  axis_id      INT NOT NULL,
+  angle_offset FLOAT NOT NULL DEFAULT 0,
+  UNIQUE KEY uk_proj_axis (project_id, axis_id),
+  FOREIGN KEY (project_id) REFERENCES projects(id) ON DELETE CASCADE,
+  FOREIGN KEY (axis_id)    REFERENCES matrix_axes(id) ON DELETE CASCADE
+) ENGINE=InnoDB;
+
 -- Celdas de la matriz
 CREATE TABLE IF NOT EXISTS matrix_cells (
   project_id  INT NOT NULL,

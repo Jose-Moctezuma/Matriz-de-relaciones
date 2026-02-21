@@ -34,6 +34,19 @@ const dbConfig = process.env.MYSQL_URL
 console.log("DB Config:", { host: process.env.DB_HOST, port: process.env.DB_PORT, user: process.env.DB_USER, database: process.env.DB_NAME, ssl: process.env.DB_SSL });
 const pool = mysql.createPool(dbConfig);
 
+// Auto-crear tabla diagram_positions si no existe
+pool.execute(`
+  CREATE TABLE IF NOT EXISTS diagram_positions (
+    id           INT AUTO_INCREMENT PRIMARY KEY,
+    project_id   INT NOT NULL,
+    axis_id      INT NOT NULL,
+    angle_offset FLOAT NOT NULL DEFAULT 0,
+    UNIQUE KEY uk_proj_axis (project_id, axis_id),
+    FOREIGN KEY (project_id) REFERENCES projects(id) ON DELETE CASCADE,
+    FOREIGN KEY (axis_id)    REFERENCES matrix_axes(id) ON DELETE CASCADE
+  ) ENGINE=InnoDB
+`).catch(e => console.warn("diagram_positions table:", e.message));
+
 // ---------- AUTH MIDDLEWARE ----------
 function auth(req, res, next) {
   const h = req.headers.authorization || "";
@@ -431,6 +444,52 @@ app.put("/api/projects/:id/matrix/cell", auth, async (req, res) => {
     res.json({ ok: true });
   } catch (e) {
     res.status(e.status || 500).json({ error: "Error interno", detail: e.message });
+  }
+});
+
+// ---------- DIAGRAM POSITIONS: GET ----------
+app.get("/api/projects/:id/diagram-positions", auth, async (req, res) => {
+  try {
+    const projectId = Number(req.params.id);
+    await assertProjectOwner(projectId, req.user.id);
+    const [rows] = await pool.execute(
+      "SELECT axis_id, angle_offset FROM diagram_positions WHERE project_id=?",
+      [projectId]
+    );
+    res.json(rows);
+  } catch (e) {
+    res.status(e.status || 500).json({ error: e.message || "Error interno" });
+  }
+});
+
+// ---------- DIAGRAM POSITIONS: SAVE ----------
+app.put("/api/projects/:id/diagram-positions", auth, async (req, res) => {
+  const conn = await pool.getConnection();
+  try {
+    const projectId = Number(req.params.id);
+    await assertProjectOwner(projectId, req.user.id);
+    const { positions } = req.body || {};
+    if (!Array.isArray(positions)) return res.status(400).json({ error: "Datos inválidos" });
+
+    await conn.beginTransaction();
+    for (const pos of positions) {
+      const axisId = Number(pos.axis_id);
+      const angle = Number(pos.angle_offset);
+      if (!axisId) continue;
+      await conn.execute(
+        `INSERT INTO diagram_positions (project_id, axis_id, angle_offset)
+         VALUES (?,?,?)
+         ON DUPLICATE KEY UPDATE angle_offset=?`,
+        [projectId, axisId, angle, angle]
+      );
+    }
+    await conn.commit();
+    res.json({ ok: true });
+  } catch (e) {
+    try { await conn.rollback(); } catch {}
+    res.status(e.status || 500).json({ error: e.message || "Error interno" });
+  } finally {
+    conn.release();
   }
 });
 

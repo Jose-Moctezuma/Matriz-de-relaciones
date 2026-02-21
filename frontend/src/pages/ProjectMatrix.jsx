@@ -319,6 +319,12 @@ export default function ProjectMatrix() {
           <button onClick={exportPDF} style={btnOutline}>
             Exportar PDF
           </button>
+          <button
+            onClick={() => nav(`/project/${projectId}/ponderaciones`)}
+            style={{ ...btnGold, background: "linear-gradient(135deg, #d4a853 0%, #c9a227 100%)" }}
+          >
+            Continuar → Ponderaciones
+          </button>
         </div>
       </div>
 

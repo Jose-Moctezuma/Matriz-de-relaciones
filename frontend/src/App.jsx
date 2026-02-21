@@ -7,6 +7,7 @@ import ForgotPassword from "./pages/ForgotPassword.jsx";
 import ResetPassword from "./pages/ResetPassword.jsx";
 import Dashboard from "./pages/Dashboard.jsx";
 import ProjectMatrix from "./pages/ProjectMatrix.jsx";
+import ProjectPonderaciones from "./pages/ProjectPonderaciones.jsx";
 import Home from "./pages/Home.jsx";
 
 import { getToken, clearToken } from "./api/http.js";
@@ -48,6 +49,15 @@ export default function App() {
         element={
           <RequireAuth>
             <ProjectMatrix onLogout={onLogout} />
+          </RequireAuth>
+        }
+      />
+
+      <Route
+        path="/project/:id/ponderaciones"
+        element={
+          <RequireAuth>
+            <ProjectPonderaciones onLogout={onLogout} />
           </RequireAuth>
         }
       />
