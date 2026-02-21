@@ -362,30 +362,41 @@ export default function ProjectPonderaciones({ onLogout }) {
         return za !== zb ? za - zb : (a.order ?? 0) - (b.order ?? 0);
       });
 
-      // Sumatoria
-      const sums = sorted.map((r, i) => {
-        let s = 0;
-        for (let j = 0; j < sorted.length; j++) {
-          if (j === i) continue;
-          s += i < j ? getVal(r.id, sorted[j].id) : getVal(sorted[j].id, r.id);
+      // Sumatoria — igual que ProjectMatrix: triángulo superior, acumula en ambos lados
+      const n = sorted.length;
+      const sumArr = Array(n).fill(0);
+      for (let i = 0; i < n; i++) {
+        for (let j = i + 1; j < n; j++) {
+          const v = Number(cellMap.get(`${sorted[i].id}-${sorted[j].id}`) ?? 0);
+          sumArr[i] += v;
+          sumArr[j] += v;
         }
-        return s;
-      });
+      }
 
-      // Rangos (1 = mayor suma)
-      const order = [...sums.map((s, i) => ({ s, i }))].sort((a, b) => b.s - a.s);
-      const ranks = new Array(sorted.length);
-      let curRank = 1, prev = -1;
-      for (let k = 0; k < order.length; k++) {
-        if (order[k].s !== prev) { curRank = k + 1; prev = order[k].s; }
-        ranks[order[k].i] = curRank;
+      // Rangos — igual que ProjectMatrix: incremento de 1 cuando cambia la suma
+      const items = sorted.map((r, idx) => ({
+        idx,
+        sum:   sumArr[idx],
+        order: Number(r.order ?? idx),
+        name:  r.name,
+      }));
+      items.sort((a, b) => {
+        if (b.sum !== a.sum) return b.sum - a.sum;
+        if (a.order !== b.order) return a.order - b.order;
+        return String(a.name).localeCompare(String(b.name));
+      });
+      const ranks = Array(n).fill(0);
+      let currentRank = 0, lastSum = null;
+      for (const it of items) {
+        if (lastSum === null || it.sum !== lastSum) { currentRank += 1; lastSum = it.sum; }
+        ranks[it.idx] = currentRank;
       }
 
       setSpaces(sorted.map((r, i) => ({
         id:   r.id,
         name: r.name,
         zone: normalizeZone(r.zone),
-        sum:  sums[i],
+        sum:  sumArr[i],
         rank: ranks[i],
       })));
 
