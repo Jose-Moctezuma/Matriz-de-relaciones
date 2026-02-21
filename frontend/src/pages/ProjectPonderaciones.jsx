@@ -104,7 +104,7 @@ function clampToSector(θ, start, end) {
   return distEnd < distStart ? end : start;
 }
 
-function PonderacionesDiagram({ spaces, positions, onPositionChange, onDragEnd }) {
+function PonderacionesDiagram({ spaces, positions, onPositionChange, onDragEnd, relMap }) {
   const svgRef  = useRef(null);
   const [drag, setDrag] = useState(null); // {space, sector}
   const posRef  = useRef(positions);
@@ -271,6 +271,28 @@ function PonderacionesDiagram({ spaces, positions, onPositionChange, onDragEnd }
         );
       })}
 
+      {/* ── Líneas de relación entre espacios ── */}
+      {spaces.map((spaceA, i) =>
+        spaces.slice(i + 1).map(spaceB => {
+          const v = relMap?.get(`${spaceA.id}-${spaceB.id}`) ?? 0;
+          if (!v) return null;
+          const posA = getBubblePos(spaceA);
+          const posB = getBubblePos(spaceB);
+          return (
+            <line
+              key={`rel-${spaceA.id}-${spaceB.id}`}
+              x1={posA.x} y1={posA.y}
+              x2={posB.x} y2={posB.y}
+              stroke="#111827"
+              strokeWidth={v === 4 ? 2.2 : 1.5}
+              strokeDasharray={v === 2 ? "7 5" : "none"}
+              opacity={0.75}
+              pointerEvents="none"
+            />
+          );
+        })
+      )}
+
       {/* ── Burbujas de espacios (arrastrables) ── */}
       {spaces.map(space => {
         const pos    = getBubblePos(space);
@@ -333,6 +355,7 @@ export default function ProjectPonderaciones({ onLogout }) {
   const [projectTitle, setTitle]    = useState("");
   const [spaces, setSpaces]         = useState([]); // [{id, name, zone, rank, sum}]
   const [positions, setPositions]   = useState({}); // {axisId: angleOffset}
+  const [relMap, setRelMap]         = useState(new Map()); // "idA-idB" → 2 | 4
 
   /* ── Carga datos ── */
   useEffect(() => {
@@ -409,6 +432,20 @@ export default function ProjectPonderaciones({ onLogout }) {
         sum:  sumArr[i],
         rank: ranks[i],
       })));
+
+      // relMap: pares de row IDs → valor (2 o 4)
+      // Permite que el diagrama consulte relaciones usando solo IDs de filas
+      const rm = new Map();
+      for (let i = 0; i < n; i++) {
+        for (let j = i + 1; j < n; j++) {
+          const v = Number(cellMap.get(`${Number(sortedRows[i].id)}-${Number(sortedCols[j].id)}`) ?? 0);
+          if (v > 0) {
+            rm.set(`${sortedRows[i].id}-${sortedRows[j].id}`, v);
+            rm.set(`${sortedRows[j].id}-${sortedRows[i].id}`, v);
+          }
+        }
+      }
+      setRelMap(rm);
 
       // Posiciones guardadas
       const posMap = {};
@@ -529,6 +566,7 @@ export default function ProjectPonderaciones({ onLogout }) {
                 positions={positions}
                 onPositionChange={handlePositionChange}
                 onDragEnd={handleDragEnd}
+                relMap={relMap}
               />
             </div>
           )}
