@@ -346,6 +346,18 @@ app.put("/api/projects/:id/matrix/axes", auth, async (req, res) => {
 
     const idToComponent = new Map(oldAxes.map((a) => [a.id, a.component]));
 
+    // Preservar posiciones del diagrama de ponderaciones por nombre de componente
+    // (los axis_id cambian al recrear los ejes, pero el nombre es estable)
+    const [oldDiagPos] = await conn.execute(
+      "SELECT axis_id, angle_offset FROM diagram_positions WHERE project_id=?",
+      [projectId]
+    );
+    const positionsByName = {};
+    for (const dp of oldDiagPos) {
+      const name = idToComponent.get(dp.axis_id);
+      if (name) positionsByName[name] = dp.angle_offset;
+    }
+
     const [oldCells] = await conn.execute(
       "SELECT row_axis_id, col_axis_id, value FROM matrix_cells WHERE project_id=?",
       [projectId]
@@ -388,6 +400,19 @@ app.put("/api/projects/:id/matrix/axes", auth, async (req, res) => {
         [projectId, "col", c.zone, c.name, j]
       );
       colIds.push(r.insertId);
+    }
+
+    // 5b) Restaurar posiciones del diagrama con los nuevos axis IDs (por nombre)
+    for (let i = 0; i < uniq.length; i++) {
+      const name = uniq[i].name;
+      if (positionsByName[name] !== undefined) {
+        await conn.execute(
+          `INSERT INTO diagram_positions (project_id, axis_id, angle_offset)
+           VALUES (?,?,?)
+           ON DUPLICATE KEY UPDATE angle_offset=?`,
+          [projectId, rowIds[i], positionsByName[name], positionsByName[name]]
+        );
+      }
     }
 
     // 6) Insertar celdas triángulo superior conservando valores (0/2/4)

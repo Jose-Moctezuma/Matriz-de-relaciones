@@ -34,21 +34,20 @@ const C = {
 /* ════════════════════════════════════════════════════
    SVG DIAGRAM — inline en este archivo
 ════════════════════════════════════════════════════ */
-const SVG_SIZE  = 720;
-const CX        = SVG_SIZE / 2;
-const CY        = SVG_SIZE / 2;
-const OUTER_R   = 300;
-const CENTER_R  = 26;   // radio del círculo central
-const BUBBLE_R  = 26;   // radio de cada burbuja
+const CENTER_R  = 26;   // radio del círculo central (fijo)
+const BUBBLE_R  = 26;   // radio de cada burbuja (fijo)
 const LABEL_PAD = 36;   // distancia extra para etiquetas de zona
 
-function getRingRadius(rank, nRanks) {
-  const step = (OUTER_R - CENTER_R) / nRanks;
-  return CENTER_R + (rank - 0.5) * step;
+// Dimensiones dinámicas: cada anillo ocupa al menos 64 px (≥ 2×BUBBLE_R + margen)
+function computeSizes(nRanks) {
+  const RING_SPACE = 64;
+  const outerR  = Math.max(180, CENTER_R + (nRanks + 1) * RING_SPACE);
+  const svgSize = Math.round(2 * (outerR + LABEL_PAD + 30));
+  return { OUTER_R: outerR, SVG_SIZE: svgSize, CX: svgSize / 2, CY: svgSize / 2 };
 }
-function getRingOuter(rank, nRanks) {
-  const step = (OUTER_R - CENTER_R) / nRanks;
-  return CENTER_R + rank * step;
+
+function getRingRadius(rank, nRanks, outerR) {
+  return CENTER_R + rank * (outerR - CENTER_R) / (nRanks + 1);
 }
 
 /* Construye los sectores proporcionales al nº de espacios por zona */
@@ -77,13 +76,13 @@ function buildSectors(spaces) {
 }
 
 /* Path SVG de un sector de anillo (de innerR a outerR, de start a end) */
-function sectorPath(start, end, innerR, outerR) {
+function sectorPath(start, end, innerR, outerR, cx, cy) {
   const large = (end - start) > Math.PI ? 1 : 0;
   const cos = Math.cos, sin = Math.sin;
-  const x1i = CX + innerR * cos(start), y1i = CY + innerR * sin(start);
-  const x2i = CX + innerR * cos(end),   y2i = CY + innerR * sin(end);
-  const x1o = CX + outerR * cos(start), y1o = CY + outerR * sin(start);
-  const x2o = CX + outerR * cos(end),   y2o = CY + outerR * sin(end);
+  const x1i = cx + innerR * cos(start), y1i = cy + innerR * sin(start);
+  const x2i = cx + innerR * cos(end),   y2i = cy + innerR * sin(end);
+  const x1o = cx + outerR * cos(start), y1o = cy + outerR * sin(start);
+  const x2o = cx + outerR * cos(end),   y2o = cy + outerR * sin(end);
   return [
     `M ${x1i} ${y1i}`,
     `A ${innerR} ${innerR} 0 ${large} 1 ${x2i} ${y2i}`,
@@ -104,7 +103,7 @@ function clampToSector(θ, start, end) {
   return distEnd < distStart ? end : start;
 }
 
-function PonderacionesDiagram({ spaces, positions, onPositionChange, onDragEnd, relMap }) {
+function PonderacionesDiagram({ spaces, positions, onPositionChange, onDragEnd, relMap, showBg }) {
   const svgRef  = useRef(null);
   const [drag, setDrag] = useState(null); // {space, sector}
   const posRef  = useRef(positions);
@@ -112,6 +111,9 @@ function PonderacionesDiagram({ spaces, positions, onPositionChange, onDragEnd, 
 
   const nRanks  = useMemo(() => Math.max(1, ...spaces.map(s => s.rank)), [spaces]);
   const sectors = useMemo(() => buildSectors(spaces), [spaces]);
+
+  // Tamaño dinámico del SVG según número de rangos
+  const { OUTER_R, SVG_SIZE, CX, CY } = useMemo(() => computeSizes(nRanks), [nRanks]);
 
   const getSector = useCallback((zone) =>
     sectors.find(s => s.zone === normalizeZone(zone)), [sectors]);
@@ -142,9 +144,9 @@ function PonderacionesDiagram({ spaces, positions, onPositionChange, onDragEnd, 
       θ = sector.center - spread / 2 + idx * step;
     }
 
-    const r = getRingRadius(space.rank, nRanks);
+    const r = getRingRadius(space.rank, nRanks, OUTER_R);
     return { x: CX + r * Math.cos(θ), y: CY + r * Math.sin(θ) };
-  }, [getSector, nRanks, spaces]);
+  }, [getSector, nRanks, spaces, OUTER_R, CX, CY]);
 
   /* Drag handlers */
   const handleMouseDown = (e, space) => {
@@ -169,62 +171,59 @@ function PonderacionesDiagram({ spaces, positions, onPositionChange, onDragEnd, 
 
     const offset = safe - drag.sector.center;
     onPositionChange(drag.space.id, offset);
-  }, [drag, onPositionChange]);
+  }, [drag, onPositionChange, SVG_SIZE, CX, CY]);
 
   const handleMouseUp = useCallback(() => {
-    if (drag) onDragEnd();
+    if (drag) onDragEnd(); // guarda inmediatamente al soltar
     setDrag(null);
   }, [drag, onDragEnd]);
-
-  const ringStep = (OUTER_R - CENTER_R) / nRanks;
 
   return (
     <svg
       ref={svgRef}
       width="100%"
       viewBox={`0 0 ${SVG_SIZE} ${SVG_SIZE}`}
-      style={{ maxWidth: 720, display: "block", margin: "0 auto",
+      style={{ maxWidth: SVG_SIZE, display: "block", margin: "0 auto",
                cursor: drag ? "grabbing" : "default", userSelect: "none" }}
       onMouseMove={handleMouseMove}
       onMouseUp={handleMouseUp}
       onMouseLeave={handleMouseUp}
     >
       {/* ── Rellenos de zona (sectores completos) ── */}
-      {sectors.map(s => (
+      {showBg && sectors.map(s => (
         <path
           key={`fill-${s.zone}`}
-          d={sectorPath(s.start, s.end, CENTER_R, OUTER_R)}
+          d={sectorPath(s.start, s.end, CENTER_R, OUTER_R, CX, CY)}
           fill={s.color}
           opacity={0.18}
         />
       ))}
 
       {/* ── Bandas por anillo (alternar opacidad leve) ── */}
-      {Array.from({ length: nRanks }, (_, i) => {
-        const inner = CENTER_R + i * ringStep;
-        const outer = CENTER_R + (i + 1) * ringStep;
+      {showBg && Array.from({ length: nRanks }, (_, i) => {
+        const step  = (OUTER_R - CENTER_R) / nRanks;
+        const inner = CENTER_R + i * step;
+        const outer = CENTER_R + (i + 1) * step;
         return sectors.map(s => (
           <path
             key={`band-${i}-${s.zone}`}
-            d={sectorPath(s.start, s.end, inner, outer)}
+            d={sectorPath(s.start, s.end, inner, outer, CX, CY)}
             fill={s.color}
             opacity={i % 2 === 0 ? 0.10 : 0.04}
           />
         ));
       })}
 
-      {/* ── Círculos de anillo ── */}
-      {Array.from({ length: nRanks + 1 }, (_, i) => {
-        const r = CENTER_R + i * ringStep;
-        const isEdge = i === 0 || i === nRanks;
-        return (
-          <circle key={`ring-${i}`} cx={CX} cy={CY} r={r}
-            fill="none" stroke="#475569"
-            strokeWidth={isEdge ? 1.8 : 0.8}
-            strokeDasharray={isEdge ? "none" : "3 5"}
-          />
-        );
-      })}
+      {/* ── Círculo interior y exterior ── */}
+      <circle cx={CX} cy={CY} r={CENTER_R} fill="none" stroke="#475569" strokeWidth={1.8} />
+      <circle cx={CX} cy={CY} r={OUTER_R}  fill="none" stroke="#475569" strokeWidth={1.8} />
+
+      {/* ── Círculos guía en cada anillo (donde se sitúan las burbujas) ── */}
+      {Array.from({ length: nRanks }, (_, i) => (
+        <circle key={`ring-${i}`} cx={CX} cy={CY} r={getRingRadius(i + 1, nRanks, OUTER_R)}
+          fill="none" stroke="#475569" strokeWidth={0.8} strokeDasharray="3 5"
+        />
+      ))}
 
       {/* ── Líneas divisoras de sector ── */}
       {sectors.map(s => (
@@ -240,7 +239,7 @@ function PonderacionesDiagram({ spaces, positions, onPositionChange, onDragEnd, 
 
       {/* ── Números de rango (sobre cada anillo, al norte del círculo) ── */}
       {Array.from({ length: nRanks }, (_, i) => {
-        const r = getRingRadius(i + 1, nRanks);
+        const r = getRingRadius(i + 1, nRanks, OUTER_R);
         // Posicionar en el ángulo del primer sector, cerca del borde superior
         const θ = -Math.PI / 2;
         return (
@@ -318,7 +317,7 @@ function PonderacionesDiagram({ spaces, positions, onPositionChange, onDragEnd, 
             {/* Texto */}
             <text x={pos.x} y={pos.y}
               textAnchor="middle" dominantBaseline="middle"
-              fontSize={7} fontWeight="800" fill="#fff"
+              fontSize={7} fontWeight="800" fill="#111827"
               pointerEvents="none"
             >
               {label}
@@ -356,6 +355,10 @@ export default function ProjectPonderaciones({ onLogout }) {
   const [spaces, setSpaces]         = useState([]); // [{id, name, zone, rank, sum}]
   const [positions, setPositions]   = useState({}); // {axisId: angleOffset}
   const [relMap, setRelMap]         = useState(new Map()); // "idA-idB" → 2 | 4
+  const [showBg, setShowBg]         = useState(true);
+
+  /* Ref sincrónico de posiciones — siempre el valor más reciente sin esperar re-render */
+  const positionsRef = useRef({});
 
   /* ── Carga datos ── */
   useEffect(() => {
@@ -450,29 +453,38 @@ export default function ProjectPonderaciones({ onLogout }) {
       // Posiciones guardadas
       const posMap = {};
       for (const p of posData) posMap[p.axis_id] = p.angle_offset;
+      console.log("[PONDER] posData cargado:", posData, "→ posMap:", posMap);
+      positionsRef.current = posMap;   // sincronizar ref inmediatamente
       setPositions(posMap);
     }).catch(e => {
       setError(e.message || "Error al cargar el proyecto");
     }).finally(() => setLoading(false));
   }, [projectId]);
 
-  /* ── Actualiza posición en estado (durante drag) ── */
+  /* ── Actualiza posición en estado y en ref (durante drag) ── */
   const handlePositionChange = useCallback((axisId, offset) => {
-    setPositions(prev => ({ ...prev, [axisId]: offset }));
+    positionsRef.current = { ...positionsRef.current, [axisId]: offset }; // sync inmediato
+    setPositions(positionsRef.current);
+    console.log("[PONDER] drag →", axisId, offset, "ref:", positionsRef.current);
   }, []);
 
-  /* ── Guarda posiciones en API (al soltar) ── */
-  const handleDragEnd = useCallback(() => {
-    setPositions(cur => {
-      const arr = Object.entries(cur).map(([id, offset]) => ({
-        axis_id: Number(id),
-        angle_offset: offset,
-      }));
-      api.put(`/projects/${projectId}/diagram-positions`, { positions: arr })
-        .catch(e => console.error("Error guardando posiciones:", e));
-      return cur;
-    });
+  /* ── Función de guardado — lee siempre de ref para tener el valor más actual ── */
+  const savePositions = useCallback(() => {
+    const arr = Object.entries(positionsRef.current).map(([id, offset]) => ({
+      axis_id: Number(id),
+      angle_offset: Number(offset),
+    }));
+    if (!arr.length) return;
+    console.log("[PONDER] guardando:", arr);
+    api.put(`/projects/${projectId}/diagram-positions`, { positions: arr })
+      .then(() => console.log("[PONDER] guardado OK ✓"))
+      .catch(e => console.error("[PONDER] Error guardando:", e));
   }, [projectId]);
+
+  /* ── Guarda al desmontar (cuando el usuario navega a otra página) ── */
+  useEffect(() => {
+    return () => { savePositions(); };
+  }, [savePositions]);
 
   /* ── Exportar PDF ── */
   const handleExport = async () => {
@@ -528,6 +540,14 @@ export default function ProjectPonderaciones({ onLogout }) {
 
         <div style={{ display: "flex", gap: 10 }}>
           <button
+            onClick={() => setShowBg(v => !v)}
+            style={{ background: showBg ? C.bgAlt : "#334155", color: C.textMuted,
+                     border: `1px solid ${C.border}`, borderRadius: 6,
+                     padding: "9px 14px", fontWeight: 600, fontSize: 13, cursor: "pointer" }}
+          >
+            {showBg ? "Ocultar fondos" : "Mostrar fondos"}
+          </button>
+          <button
             onClick={handleExport}
             style={{ background: C.gold, color: C.bg, border: "none", borderRadius: 6,
                      padding: "9px 18px", fontWeight: 700, fontSize: 13, cursor: "pointer" }}
@@ -565,8 +585,9 @@ export default function ProjectPonderaciones({ onLogout }) {
                 spaces={spaces}
                 positions={positions}
                 onPositionChange={handlePositionChange}
-                onDragEnd={handleDragEnd}
+                onDragEnd={savePositions}
                 relMap={relMap}
+                showBg={showBg}
               />
             </div>
           )}
