@@ -116,15 +116,35 @@ function PonderacionesDiagram({ spaces, positions, onPositionChange, onDragEnd }
   const getSector = useCallback((zone) =>
     sectors.find(s => s.zone === normalizeZone(zone)), [sectors]);
 
-  /* Posición en pantalla (SVG coords) de cada burbuja */
+  /* Posición en pantalla (SVG coords) de cada burbuja.
+     - Si hay posición guardada: usa el ángulo del arquitecto.
+     - Si no: distribuye automáticamente los espacios del mismo rango+zona
+       a lo ancho del sector para que no se superpongan. */
   const getBubblePos = useCallback((space) => {
     const sector = getSector(space.zone);
     if (!sector) return { x: CX, y: CY };
-    const offset = posRef.current[space.id] ?? 0;
-    const θ = sector.center + offset;
+
+    let θ;
+    const hasSaved = space.id in posRef.current;
+
+    if (hasSaved) {
+      θ = sector.center + posRef.current[space.id];
+    } else {
+      // Agrupar espacios del mismo zona+rango y repartirlos en el sector
+      const group = spaces
+        .filter(s => s.zone === space.zone && s.rank === space.rank)
+        .sort((a, b) => a.id - b.id);
+      const idx = group.findIndex(s => s.id === space.id);
+      const n   = group.length;
+      // Ocupar el 70 % del sector para dejar margen en los bordes
+      const spread = sector.span * 0.7;
+      const step   = n > 1 ? spread / (n - 1) : 0;
+      θ = sector.center - spread / 2 + idx * step;
+    }
+
     const r = getRingRadius(space.rank, nRanks);
     return { x: CX + r * Math.cos(θ), y: CY + r * Math.sin(θ) };
-  }, [getSector, nRanks]);
+  }, [getSector, nRanks, spaces]);
 
   /* Drag handlers */
   const handleMouseDown = (e, space) => {
