@@ -34,13 +34,13 @@ const C = {
 /* ════════════════════════════════════════════════════
    SVG DIAGRAM — inline en este archivo
 ════════════════════════════════════════════════════ */
-const SVG_SIZE  = 560;
+const SVG_SIZE  = 720;
 const CX        = SVG_SIZE / 2;
 const CY        = SVG_SIZE / 2;
-const OUTER_R   = 230;
-const CENTER_R  = 22;   // radio del círculo central
-const BUBBLE_R  = 18;   // radio de cada burbuja
-const LABEL_PAD = 28;   // distancia extra para etiquetas de zona
+const OUTER_R   = 300;
+const CENTER_R  = 26;   // radio del círculo central
+const BUBBLE_R  = 26;   // radio de cada burbuja
+const LABEL_PAD = 36;   // distancia extra para etiquetas de zona
 
 function getRingRadius(rank, nRanks) {
   const step = (OUTER_R - CENTER_R) / nRanks;
@@ -183,7 +183,7 @@ function PonderacionesDiagram({ spaces, positions, onPositionChange, onDragEnd }
       ref={svgRef}
       width="100%"
       viewBox={`0 0 ${SVG_SIZE} ${SVG_SIZE}`}
-      style={{ maxWidth: 560, display: "block", margin: "0 auto",
+      style={{ maxWidth: 720, display: "block", margin: "0 auto",
                cursor: drag ? "grabbing" : "default", userSelect: "none" }}
       onMouseMove={handleMouseMove}
       onMouseUp={handleMouseUp}
@@ -508,8 +508,8 @@ export default function ProjectPonderaciones({ onLogout }) {
       </div>
 
       {/* ── Contenido principal ── */}
-      <div style={{ maxWidth: 900, margin: "0 auto", padding: "32px 24px",
-                    display: "grid", gridTemplateColumns: "1fr 260px", gap: 28, alignItems: "start" }}>
+      <div style={{ maxWidth: 1140, margin: "0 auto", padding: "32px 24px",
+                    display: "grid", gridTemplateColumns: "1fr 270px", gap: 28, alignItems: "start" }}>
 
         {/* Diagrama */}
         <div style={{ backgroundColor: C.card, borderRadius: 16, padding: 24,
